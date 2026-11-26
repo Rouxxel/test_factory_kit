@@ -1,15 +1,26 @@
-import { MessageSquare } from 'lucide-react'
+import Header from './components/Header'
+import MessageList from './components/MessageList'
+import ChatInput from './components/ChatInput'
+import { useChat } from './hooks/useChat'
 
 function App() {
+  const { messages, isStreaming, error, sendMessage, clearChat } = useChat()
+
   return (
-    <div className="flex min-h-screen flex-col bg-slate-900 text-slate-100">
-      <header className="flex items-center gap-2 border-b border-slate-700 px-6 py-4">
-        <MessageSquare className="h-5 w-5" aria-hidden="true" />
-        <h1 className="text-lg font-semibold">Chat</h1>
-      </header>
-      <main className="flex flex-1 items-center justify-center p-6">
-        <p className="text-slate-400">Chat interface coming soon.</p>
+    <div className="mx-auto flex h-screen w-full max-w-4xl flex-col bg-slate-900 text-slate-100">
+      <Header />
+      <main className="flex min-h-0 flex-1 flex-col">
+        <MessageList messages={messages} isStreaming={isStreaming} />
+        {error && (
+          <div
+            role="alert"
+            className="mx-4 mb-2 rounded-lg border border-red-700 bg-red-950 px-3 py-2 text-sm text-red-200"
+          >
+            {error}
+          </div>
+        )}
       </main>
+      <ChatInput onSend={sendMessage} onClear={clearChat} isStreaming={isStreaming} />
     </div>
   )
 }
