@@ -18,7 +18,7 @@
 **Goal:** Establish runnable backend and frontend scaffolds, ensure frontend runs on port 8080 with proxy, and configure automated CI checks.
 
 ### [M1-01] Backend Scaffolding & Health Endpoint
-- **Status:** `TODO`
+- **Status:** `DONE`
 - **Execution Mode:** `SERIAL`
 - **Depends On:** `None`
 - **Conflicts With:** `None`
@@ -42,7 +42,7 @@
 - **Verification Command:** `pytest backend/tests/test_health.py -v`
 
 ### [M1-02] CI Workflow Setup
-- **Status:** `TODO`
+- **Status:** `DONE`
 - **Execution Mode:** `SERIAL`
 - **Depends On:** `M1-01`
 - **Conflicts With:** `None`
@@ -60,7 +60,7 @@
 - **Verification Command:** `python -c "import yaml; yaml.safe_load(open('.github/workflows/ci.yml'))"`
 
 ### [M1-03] Frontend Scaffolding on Port 8080
-- **Status:** `TODO`
+- **Status:** `DONE`
 - **Execution Mode:** `SERIAL`
 - **Depends On:** `M1-02`
 - **Conflicts With:** `None`
@@ -90,7 +90,7 @@
 **Goal:** Implement Gemini 2.5 Flash streaming service and expose the `/api/chat/stream` SSE endpoint with sender & timestamp support.
 
 ### [M2-01] Gemini Streaming Service & Schemas
-- **Status:** `TODO`
+- **Status:** `DONE`
 - **Execution Mode:** `PARALLEL`
 - **Depends On:** `M1-02`, `M1-03`
 - **Conflicts With:** `None`
@@ -111,7 +111,7 @@
 - **Verification Command:** `python -m py_compile backend/app/schemas/chat.py backend/app/services/gemini.py`
 
 ### [M2-02] Chat Stream Router & Integration Tests
-- **Status:** `TODO`
+- **Status:** `DONE`
 - **Execution Mode:** `SERIAL`
 - **Depends On:** `M2-01`
 - **Conflicts With:** `None`
@@ -135,7 +135,7 @@
 **Goal:** Build responsive Tailwind chat UI with multi-turn message history, auto-scroll, real-time SSE token streaming, and explicit sender badges & timestamps for every message.
 
 ### [M3-01] Frontend Types, API Client & useChat Hook
-- **Status:** `TODO`
+- **Status:** `DONE`
 - **Execution Mode:** `PARALLEL`
 - **Depends On:** `M2-02`
 - **Conflicts With:** `None`
@@ -160,7 +160,7 @@
 - **Verification Command:** `npm --prefix frontend run build`
 
 ### [M3-02] Chat UI Components & App Integration
-- **Status:** `TODO`
+- **Status:** `DONE`
 - **Execution Mode:** `SERIAL`
 - **Depends On:** `M3-01`
 - **Conflicts With:** `None`
@@ -192,7 +192,7 @@
 **Goal:** Deliver complete, high-quality documentation in `/documentation` detailing setup, architecture, and API specs.
 
 ### [M4-01] Documentation Suite
-- **Status:** `TODO`
+- **Status:** `DONE`
 - **Execution Mode:** `PARALLEL`
 - **Depends On:** `M3-02`
 - **Conflicts With:** `None`
