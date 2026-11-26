@@ -1,20 +1,18 @@
 # Project Backlog
 
-
 ## Execution Schedule
 | Issue | Mode | Depends On | Conflicts With | Execution Notes |
 | :--- | :--- | :--- | :--- | :--- |
 | `M1-01` | Serial | None | None | Backend base scaffolding, config, and /api/health endpoint |
 | `M1-02` | Serial | `M1-01` | None | GitHub Actions CI workflow for backend & frontend verification |
 | `M1-03` | Serial | `M1-02` | None | Vite + React + TS + Tailwind frontend setup running on port 8080 with /api proxy |
-| `M2-01` | Parallel | `M1-02`, `M1-03` | None | Pydantic chat schemas and Gemini 2.5 Flash SSE streaming service |
+| `M2-01` | Parallel | `M1-02`, `M1-03` | None | Pydantic chat schemas (with timestamp & sender) and Gemini 2.5 Flash SSE streaming service |
 | `M2-02` | Serial | `M2-01` | None | FastAPI /api/chat/stream SSE route and comprehensive integration tests |
-| `M3-01` | Parallel | `M2-02` | None | Frontend TypeScript chat interfaces, SSE streaming API client, and useChat hook |
-| `M3-02` | Serial | `M3-01` | None | Tailwind-styled chat components (Header, MessageList, MessageItem, ChatInput) and App layout |
+| `M3-01` | Parallel | `M2-02` | None | Frontend TypeScript chat interfaces, SSE streaming API client, and useChat hook with timestamps |
+| `M3-02` | Serial | `M3-01` | None | Tailwind-styled chat components with sender badges and timestamps, and App layout |
 | `M4-01` | Parallel | `M3-02` | None | Comprehensive documentation suite (ARCHITECTURE.md, API_SPEC.md, SETUP.md) in /documentation |
 
 ---
-
 
 ## Milestone 1: Core Scaffolding & CI Pipeline
 **Goal:** Establish runnable backend and frontend scaffolds, ensure frontend runs on port 8080 with proxy, and configure automated CI checks.
@@ -37,9 +35,9 @@
   - Initialize FastAPI backend application with CORS middleware enabled for `http://localhost:8080`.
   - Configure `backend/app/config.py` using `pydantic-settings` to load `GEMINI_API_KEY`, `MODEL_NAME` (defaulting to `gemini-2.5-flash`), and `PORT` (8000) from `.env`.
   - Implement `GET /api/health` returning `{"status": "ok", "model": "gemini-2.5-flash"}`.
-  - Implement unit test in `backend/tests/test_health.py` validating `GETN /api/health` returns status code 200 and expected payload.
+  - Implement unit test in `backend/tests/test_health.py` validating `GET /api/health` returns status code 200 and expected payload.
 - **Acceptance Criteria:**
-  - [ ] `GET /api/health` returns HTTP0200 with `{"status": "ok", "model": "gemini-2.5-flash"}`.
+  - [ ] `GET /api/health` returns HTTP 200 with `{"status": "ok", "model": "gemini-2.5-flash"}`.
   - [ ] Pytest suite passes cleanly.
 - **Verification Command:** `pytest backend/tests/test_health.py -v`
 
@@ -88,7 +86,8 @@
 
 ---
 
-## Milestone 2: Gemini SSE Streaming Backend:*Goal:** Implement Gemini 2.5 Flash streaming service and expose the `/api/chat/stream` SSE endpoint.
+## Milestone 2: Gemini SSE Streaming Backend
+**Goal:** Implement Gemini 2.5 Flash streaming service and expose the `/api/chat/stream` SSE endpoint with sender & timestamp support.
 
 ### [M2-01] Gemini Streaming Service & Schemas
 - **Status:** `TODO`
@@ -101,13 +100,13 @@
   - `backend/app/services/__init__.py` (create)
   - `backend/app/services/gemini.py` (create)
 - **Context & Requirements:**
-  - Define Pydantic models: `ChatMessage(role: str, content: str)`, `ChatRequest(messages: list[ChatMessage])`.
+  - Define Pydantic models: `ChatMessage(role: str, content: str, timestamp: Optional[str] = None)`, `ChatRequest(messages: list[ChatMessage])`.
   - Implement `GeminiService` in `backend/app/services/gemini.py` using `google-genai` (or `google-generativeai`).
-  - Convert incoming message history into Gemini chat turns (`user` and `model`).
+  - Convert incoming message history into Gemini chat turns (`user` and `model`), passing message content to the model.
   - Implement async generator `stream_chat(messages)` yielding token deltas as SSE formatted lines: `data: {"text": "..."}\n\n`, followed by `data: [DONE]\n\n`.
   - Handle API error conditions gracefully, yielding `data: {"error": "..."}\n\n`.
 - **Acceptance Criteria:**
-  - [ ] `ChatRequest` validates roles and message content.
+  - [ ] `ChatMessage` validates `role`, `content`, and optional `timestamp`.
   - [ ] Async generator yields SSE format strings with `data: [DONE]` on completion.
 - **Verification Command:** `python -m py_compile backend/app/schemas/chat.py backend/app/services/gemini.py`
 
@@ -121,19 +120,19 @@
   - `backend/app/main.py` (modify)
   - `backend/tests/test_chat.py` (create)
 - **Context & Requirements:**
-  - Implement `POST> /api/chat/stream` endpoint in `backend/app/routers/chat.py` returning `StreamingResponse(..., media_type="text/event-stream")`.
+  - Implement `POST /api/chat/stream` endpoint in `backend/app/routers/chat.py` returning `StreamingResponse(..., media_type="text/event-stream")`.
   - Mount the chat router in `backend/app/main.py`.
-  - Write unit and mock integration tests in `backend/tests/test_chat.py` using mock Gemini stream to verify SSE stream output, multi-turn payload handling, and error responses.
+  - Write unit and mock integration tests in `backend/tests/test_chat.py` using mock Gemini stream to verify SSE stream output, multi-turn payload handling with timestamps, and error responses.
 - **Acceptance Criteria:**
   - [ ] `POST /api/chat/stream` returns `Content-Type: text/event-stream`.
   - [ ] Response stream emits valid JSON chunks and terminates with `[DONE]`.
-  - [ ]All tests in `backend/tests/test_chat.py` pass.
+  - [ ] All tests in `backend/tests/test_chat.py` pass.
 - **Verification Command:** `pytest backend/tests/test_chat.py -v`
 
 ---
 
 ## Milestone 3: Frontend Chat UI & SSE Integration
-**Goal:** Build responsive Tailwind chat UI with multi-turn message history, auto-scroll, and real-time SSE token streaming.
+**Goal:** Build responsive Tailwind chat UI with multi-turn message history, auto-scroll, real-time SSE token streaming, and explicit sender badges & timestamps for every message.
 
 ### [M3-01] Frontend Types, API Client & useChat Hook
 - **Status:** `TODO`
@@ -145,20 +144,24 @@
   - `frontend/src/services/api.ts` (create)
   - `frontend/src/hooks/useChat.ts` (create)
 - **Context & Requirements:**
-  - Define TypeScript interfaces: `Message`, `ChatRequest`, `ConnectionStatus`.
-  - Implement `streamChat(messages, onChunk, onDone, onError)` in `api.ts` using the Fetch API with `ReadableStreamDefaultReader` to parse SSE Events.
+  - Define TypeScript interfaces:
+    - `Message`: `{ id: string; role: 'user' | 'assistant'; content: string; timestamp: string }`.
+    - `ChatRequest`: `{ messages: Message[] }`.
+    - `ConnectionStatus`: `'connected' | 'disconnected' | 'checking'`.
+  - Implement `streamChat(messages, onChunk, onDone, onError)` in `api.ts` using Fetch with `ReadableStreamDefaultReader`.
   - Implement `useChat` custom hook:
-    - Maintains `messages` state (`Message[]`).
+    - Maintains `messages` state (`Message[]`) where each message gets an ISO timestamp or formatted local time when created.
     - Exposes `sendMessage(content: string)`, `clearChat()`, `isStreaming: boolean`, `error: string | null`.
-    - Automatically appends assistant tokens to the active message during stream.
+    - Creates user message with current timestamp, adds initial assistant placeholder with timestamp, and appends stream deltas.
 - **Acceptance Criteria:**
+  - [ ] `Message` interface includes `role`, `content`, and `timestamp`.
+  - [ ] `useChat` assigns timestamps to both user and assistant messages.
   - [ ] Type definitions compile without TS errors.
-  - [ ] `useChat` hook correctly handles multi-turn history accumulation and streaming token concatenation.
 - **Verification Command:** `npm --prefix frontend run build`
 
-### [M3-02] Chat UI Components & App integration
+### [M3-02] Chat UI Components & App Integration
 - **Status:** `TODO`
-- **Execution Mode:** `SERIALX
+- **Execution Mode:** `SERIAL`
 - **Depends On:** `M3-01`
 - **Conflicts With:** `None`
 - **Target Files:**
@@ -169,11 +172,15 @@
   - `frontend/src/App.tsx` (modify)
 - **Context & Requirements:**
   - Implement `Header.tsx` displaying application title ("Gemini 2.5 Flash Chatbot") and backend status indicator (`/api/health`).
-  - Implement `MessageList.tsx` and `MessageItem.tsx` rendering user (right-aligned) and assistant (left-aligned) bubbles with Markdown or whitespace formatting and auto-scroll to the bottom.
+  - Implement `MessageItem.tsx`:
+    - Renders message content with clear sender attribution badge ("You" for user, "Gemini Assistant" for assistant).
+    - Renders a clearly visible formatted timestamp (e.g. `HH:MM AM/PM`) for every message.
+    - User messages styled on the right (primary accent color), assistant messages on the left (neutral/card color).
+  - Implement `MessageList.tsx` rendering bubbles with auto-scroll to the latest message.
   - Implement `ChatInput.tsx` with textarea, submit button, loading spinner when streaming, and "Clear Chat" button.
-  - Integrate everything into `App.tsx` with a clean, responsive container layout.
-- **AccepGDance Criteria:**
-  - [ ] Chat UI renders cleanly on both desktop and mobile viewports.
+  - Integrate everything into `App.tsx` with a responsive, modern container layout.
+- **Acceptance Criteria:**
+  - [ ] Every rendered message displays sender attribution ('You' or 'Gemini Assistant'), the message body, and a formatted timestamp.
   - [ ] User can submit a prompt with Enter key or Send button.
   - [ ] Streamed tokens update live in the UI.
   - [ ] Clear Chat button resets messages.
@@ -181,8 +188,7 @@
 
 ---
 
-
-## Milestone 4: Documentation & End-to-EndPolish
+## Milestone 4: Documentation & End-to-End Polish
 **Goal:** Deliver complete, high-quality documentation in `/documentation` detailing setup, architecture, and API specs.
 
 ### [M4-01] Documentation Suite
@@ -191,12 +197,12 @@
 - **Depends On:** `M3-02`
 - **Conflicts With:** `None`
 - **Target Files:**
-  - `documentation/ARCHITECTURE.mg` (create)
+  - `documentation/ARCHITECTURE.md` (create)
   - `documentation/API_SPEC.md` (create)
   - `documentation/SETUP.md` (create)
 - **Context & Requirements:**
   - `documentation/ARCHITECTURE.md`: Complete system overview, data flow diagrams (frontend -> FastAPI -> Gemini SSE -> frontend stream), and component hierarchy.
-  - `documentation/API_SPEC.md`: Exhaustive request/response schemas for `/api/health` and `/api/chat/stream`, including SSE event framing and error contracts.
+  - `documentation/API_SPEC.md`: Exhaustive request/response schemas for `/api/health` and `/api/chat/stream`, including message schemas with timestamps, SSE event framing, and error contracts.
   - `documentation/SETUP.md`: Step-by-step local execution instructions for running backend on port 8000 and frontend on port 8080, managing `.env`, and running tests.
 - **Acceptance Criteria:**
   - [ ] All three documentation files exist under `documentation/`.

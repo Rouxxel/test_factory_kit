@@ -6,6 +6,10 @@ A lightweight, modern web-based chatbot application that allows users to interac
 ## 2. Core User Flows & Features
 - **Real-Time Streaming Chat:** User types a message and submits it; the assistant streams back text tokens incrementally using Server-Sent Events (SSE).
 - **Multi-Turn Context:** The user can conduct ongoing, back-and-forth conversations where the model remembers prior turns within the active session.
+- **Message Metadata & Attribution:** Every message displayed in the conversation—regardless of whether it was sent by the user or the assistant—must clearly show:
+  1. The message text/content.
+  2. A timestamp (formatted local time, e.g., '12:34 PM').
+  3. Sender attribution/identity badge (e.g., 'You' vs. 'Gemini Assistant').
 - **Session Reset:** A "Clear Chat" button allows the user to reset conversation history and start fresh.
 - **Status & Health Monitoring:** A visual connection status indicator based on the backend /api/health endpoint.
 - **Port & Network Layout:**
@@ -22,6 +26,7 @@ A lightweight, modern web-based chatbot application that allows users to interac
 
 ## 4. Global Success Criteria
 - User can send a message and see real-time streaming tokens from Gemini 2.5 Flash.
+- Every message renders sender identity, message content, and formatted timestamp.
 - Multi-turn conversation retains previous context accurately.
 - Frontend launches on port 8080 without port collisions.
 - 100% automated test coverage for backend endpoints and core frontend components.
