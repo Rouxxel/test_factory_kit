@@ -1,0 +1,6 @@
+{
+  "name": "factory-loop",
+  "version": "1.0.0",
+  "description": "Portable issue-scheduled development orchestrator and subagent communication loop",
+  "author": "Mini Code Factory"
+}
